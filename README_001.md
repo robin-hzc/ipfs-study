@@ -1,0 +1,57 @@
+# ipfs-study
+#环境
+  安装好 go 环境
+  安装好 docker
+swarm.key 用来做私链认证的密钥，最终要放在 /ipfs/data 目录下
+
+go get github.com/Kubuxu/go-ipfs-swarm-key-gen
+go build
+./ipfs-swarm-key-gen > swarm.key
+
+挂载目录
+ipfs 的 export 和 data 目录挂载到主机上，这里做下准备，每个不同是私链节点的挂载目录不一样。
+
+节点 node0 要挂载的主机目录：
+
+/Users/xxx/docker/ipfs/nodes/node0/export
+/Users/xxx/docker/ipfs/nodes/node0/data
+节点 node1 要挂载的主机目录：
+
+/Users/xxx/docker/ipfs/nodes/node1/export
+/Users/xxx/docker/ipfs/nodes/node1/data
+
+拉取镜像
+拉取最新的镜像
+
+docker search ipfs
+docker pull ipfs/go-ipfs
+
+启动容器
+创建节点
+这里演示创建节点 node0 的流程，其他节点的创建流程一致，端口号和目录要修改。
+
+把 swarm.key 放入到 /Users/lidiqing/Docker/ipfs/nodes/node0/data 目录下。
+
+启动：
+  docker run --name ipfs-node-1 -v /Users/robin/docker/ipfs/nodes/node1/export:/export -v /Users/robin/docker/ipfs/nodes/node1/data:/data/ipfs -p 10001:4001 -p 11001:5001 -p 12001:8080 -d ipfs/go-ipfs:latest
+
+查看日志:
+
+docker logs -f ipfs-node-0
+
+打印出 Daemon is ready 说明 ipfs 已经启动了。Swarm is limited to private network of peers with the swarm key 可以看出使用了密钥，属于私链节点。
+
+需要清理一下公链的引导节点。
+
+docker exec ipfs-node-0 bootstrap rm —all
+
+查看节点
+按照上面的方式我们创建了多个节点，现在进入 node0 查看下情况。
+
+打开节点的 shell：
+
+docker exec -it ipfs-node-0 /bin/sh
+查看已连接的所有 p2p 节点：
+
+ipfs swarm peers
+私链已经创建成功
